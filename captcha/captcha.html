@@ -15,9 +15,32 @@
     }
 
     #captcha-container {
-      background: white;
+      /* background: red; */
       width: 390px;
       height: 300px;
+    }
+    #numbers {
+      /* background-color: red; */
+      margin: 0;
+      padding: 0;
+      width: 380px;
+      height: 240px;
+      margin-bottom: 10px;
+      border-color: black;
+      border: solid;
+      border-width: 2px;
+    }
+    #message {
+      text-align: center;
+    }
+    .number {
+      position: absolute;
+    }
+    .number:hover {
+      cursor: pointer;
+    }
+    .clicked {
+      color: grey;
     }
 
     /* Your style here... */
@@ -27,12 +50,14 @@
 <body>
   <div id="captcha-container">
     <!-- Add your CAPTCHA here: -->
-    Hello world!
-
+    <!-- <div id="n1">1</div> -->
+    <div id="message">Select the numbers in order!</div>
+    <div id="numbers"></div>
     <!-- We've added a sample button. Feel free to remove it: -->
     <button id="solve">
-      Solve!
+      Submit
     </button>
+    <button id="reset" style="background-color: green;">Reset</button>
   </div>
 
   <script type="text/javascript">
@@ -41,10 +66,79 @@
       function captchaSuccess() {
         window.top.postMessage("success", '*');
       }
+      //my code starts here
+      // const numbers = {1:[350,230], 2:[100,100], 3:[160,30]}
+      const numbers = {}
+      for (let i = 1; i <= 7; i++) {
+        const x = Math.floor(Math.random() * 360);
+        const y = Math.floor(Math.random() * 220);
+        numbers[i] = [x, y];
+      }
+      console.log(numbers);
+      const answer = [...Array(Object.keys(numbers).length)].map((_, i) => i + 1);
+      const order = [];
+      
 
+      const container = document.getElementById('numbers');
+
+      for(const n in numbers){
+        const elm = document.createElement('p');
+        elm.className = 'number';
+        // elm.id = `n-${n}`;
+        elm.textContent = n;
+        elm.style.left = `${numbers[n][0]}px`;
+        elm.style.top = `${numbers[n][1]}px`;
+
+        elm.addEventListener('click', () => {
+          if(elm.classList.contains('clicked')){
+            if(order.length > 0 && order[order.length - 1] != n) {
+              return;
+            }
+            elm.classList.remove('clicked')
+            order.pop();
+          }else{
+            order.push(parseInt(n));
+            elm.classList.add('clicked');
+          }
+        })
+
+        container.appendChild(elm);
+      }
+
+      function arraysEqual(arr1, arr2) {
+        if (arr1.length !== arr2.length) {
+          return false;
+        }
+        for (let i = 0; i < arr1.length; i++) {
+          if (arr1[i] !== arr2[i]) {
+            return false;
+          }
+        }
+        return true;
+      }
+
+
+      document.getElementById('reset').addEventListener('click', () => {
+        order.length = 0;
+        document.getElementById('message').innerHTML = "Select the numbers in order!"
+        const elements = document.getElementsByClassName("number");
+
+        for (const el of elements) {
+          el.classList.remove("clicked");
+        }
+      })
       // Your CAPTCHA code goes here, we've added a simple example below:
       document.getElementById('solve')
-           .addEventListener('click', () => captchaSuccess());
+           .addEventListener('click', () => {
+            if(arraysEqual(order, answer)){
+              document.getElementById('message').innerHTML = `<div style="color:green;">Goood Answer</div>`
+              // captchaSuccess();
+            }else{
+              //wrong answer
+              document.getElementById('message').innerHTML = `<div style="color:red;">Wrong Answer</div>`
+              order.length = 0;
+            }
+           });
 
     })(window, document);
   </script>
